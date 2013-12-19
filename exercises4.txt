@@ -1,0 +1,92 @@
+Programming in Haskell by Graham Hutton Exercises
+
+1. Using library functions, define a function halve :: [a] -> ([a],[a]) that splits an even-lengthed list into two halves.
+
+My code:
+halve :: [a] -> ([a],[a])
+halve xs = (take ((length xs) `div` 2) xs, drop ((length xs) `div` 2) xs)
+
+2. Consider a function safetail :: [a] -> [a] that behaves as the library function tail, except that safetail maps the empty list to itself, wheras tail produces an error in this case. Define safetail using:
+(a) a conditional expression;
+(b) guarded equations;
+(c) pattern matching.
+
+Hint: make use of the library function null.
+
+My code:
+As pattern matching is mentioned in the chapter one way would be:
+safetail :: [a] -> [a]
+safetail [] = []
+safetail xs = tail xs
+
+But the hint suggests null.
+
+ok so how about this way using guards:
+
+safetail :: [a] -> [a]
+safetail xs | null xs     = xs
+            |otherwise    = tail xs
+
+
+3. In a similar way to ^ (logical conjunction), show how the logical disjunction operator \/ can be defined in four different ways using pattern matching.
+
+My code:
+
+(||) :: Bool -> Bool
+True || True   = True
+True || False  = True
+False || True  = True
+False || False = False
+
+
+4. Redefine the following version of the conjunction operator using conditional expressions rather than pattern matching:
+
+True ^ True = True
+_ ^ _       = False
+
+
+My code:
+
+(&&) :: Bool -> Bool
+(&&) x y = if x then
+               if y then
+                   True
+               else
+                   False
+           else
+               False
+
+5. Do the same for the following version, and note the difference in the number of conditional expressions required:
+
+True ^ b = b
+False ^ _ = False
+
+My code:
+This is slightly more efficient if you examine the false case first.  There is less work to do. 
+
+(&&) :: Bool -> Bool
+(&&) x y = if not x then
+               False
+           else
+               y
+
+Or maybe slightly better on reflection:
+
+(&&) :: Bool -> Bool
+(&&) x y = if x then
+               y
+           else
+               False
+
+6. Show how the curried function definition mult x y z = x * y * z can be understood in terms of lambda expressions.
+
+My code:
+
+mult :: Int -> Int -> Int -> Int
+mult = (\x -> (\y -> (\z -> x * y * z)))
+
+This is a little confusing because all previous definitions of functions have been of form:  func n = <whatever>
+
+
+
+
