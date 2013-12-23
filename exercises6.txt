@@ -1,0 +1,326 @@
+Programming in Haskell by Graham Hutton Exercises - Chapter 6
+
+1. Define the exponentiation operator ^ for non-negative integers using the same pattern of recursion as the 
+multiplication operator *, and show how 2 ^ 3 is evaluated using your definition.
+
+The trouble with testing this is that I ^ will conflict with the standard prelude version.  And also I tried 
+doing like this:
+
+(ee) :: Int -> Int -> Int
+b ee 0 = 1
+b ee p = b * (b ee (p - 1))
+
+But then you get 
+(ee) :: Int -> Int -> Int
+b ee 0 = 1
+b ee p = b * (b ee (p - 1))
+
+on the type definition line.
+
+So I implemented like this so at least I could test it:
+
+expon :: Int -> Int -> Int
+expon b 0 = 1
+expon b p = b * (expon b (p - 1))
+
+Remeber this is based on the defintion of multiplication in this chapter which is defined like this:
+
+(*) :: Int -> Int -> Int
+m * 0 = 0
+m * (n + 1) = m + (m * n)
+
+This is using the n + k form which is deprecated nowadays in Haskell.  Equivalent now would be:
+
+(*) :: Int -> Int -> Int
+m * 0 = 0
+m * n = m + (m * (n - 1))
+
+Anyway, going back to the version I can test:
+
+expon :: Int -> Int -> Int
+expon b 0 = 1
+expon b p = b * (expon b (p - 1))
+
+
+2 ^ 3 would be evaluated like this:
+
+ 2 ^ 3
+ = {applying ^ }
+ 2 * (2 ^ 2)
+ = { applying ^ }
+ 2 * (2 * (2 ^ 1))
+ = { applying ^ }
+ 2 * (2 * (2 * (2 ^ 0)))
+ = { applying ^ }
+ 2 * (2 * (2 * (1)))
+ = { applying * }
+ = 8
+
+
+2. Using the definitions given in this chapter, show how length [1,2,3], drop 3 [1,2,3,4,5], and init [1,2,3] are 
+evaluated.
+
+length in this chapter is defined like this:
+length :: [a] -> Int
+length [] = 0
+length (_:xs) = 1 + length xs
+
+ length [1, 2, 3]
+ = { applying length }
+ 1 + (length [2, 3]
+ = { applying length }
+ 1 + (1 + (length [3]))
+ = { applying length }
+ 1 + (1 + (1 + length []))
+ = { applying length }
+ 1 + (1 + (1 + 0)
+ = { applying + } 
+ = 3
+
+
+definition of drop:
+drop :: Int -> [a] -> [a]
+drop 0 xs     = xs
+drop n []     = []
+drop n (x:xs) = drop (n - 1) xs 
+
+ drop 3 [1,2,3,4,5]
+ = { applying drop }
+ drop 2 [2,3,4,5]
+ = { applying drop }
+ drop 1 [3,4,5]
+ = { applying drop }
+ drop 0 [4,5]
+ = { applying drop }
+ = [4,5]
+
+definition of init:
+init :: [a] -> [a]
+init [_] = []
+init (x:xs) = x : init xs
+
+ init [1,2,3]
+ = { applying init }
+ 1 : init [2,3]
+ = { applying init }
+ 1 : 2 : init [3]
+ = { applying init }
+ 1 : 2 : []
+ = { applying : }
+ = [1,2]
+
+Note that [1, 2] is equivalent to 1 : 2 : []
+
+: is the concatenation operator
+
+3. Without looking at the definitions from the standard prelude, define the following library functions using recursion.
+
+ - Decide if all logical values in a list are True:
+
+ and :: [Bool] -> Bool
+
+ - Concatenate a list of lists:
+
+ concat :: [[a]] -> [a]
+
+ - Produce a list with n identical elements:
+
+ replicate :: Int -> a -> [a]
+
+ - Select the nth element of a list:
+
+ (!!) :: [a] -> Int -> a
+
+ - Decide if a value is an element of a list:
+
+ elem :: Eq a => a -> [a] -> Bool
+
+ Note: most of these functions are in fact defined in the prelude using other library functions, rather than using 
+ explicit recursion.
+
+First attempt:
+
+and :: [Bool] -> Bool
+and [] = True
+and (x:xs) = if x == True then 
+                   and xs
+               else
+                   False
+
+Hmmm, returning True on an empty list feels a bit dodgy.  So possibly this is better
+
+and :: [Bool] -> Bool
+and [] = False
+and [x] = x == True
+and (x:xs) = if x == True then 
+                   and xs
+               else
+                   False
+
+And possibly empty list should be an error so just remove empty list check - can error in this case.
+
+as in:
+
+and :: [Bool] -> Bool
+and [x] = x == True
+and (x:xs) = if x == True then 
+                   and xs
+               else
+                   False
+
+
+
+ - Concatenate a list of lists:
+ concat :: [[a]] -> [a]
+
+This was much trickier.  Problem is understanding difference between x, [x] and [[x]] and how to use the Haskell 
+notation to describe them.  Also you have to use another Haskel function (++) to write this one.
+
+concat :: [[a]] -> [a]
+concat [] = []                           --base case
+concat (xs:xss) = xs ++ concat xss     --iterative step
+
+Recursion is a bit like proof by induction in maths.
+
+Note the use of (xs:xss).  xs signifixes some x's - ie a list of x's ie [x].  xss signifies a list of a list 
+of x's ie [[x]].  The pattern (xs:xss) applied to [[1,2,3], [4]] will match [1,2,3] to xs and [4] to xss. xss 
+is what is left after [1,2,3].  
+
+Eventually concat will have an empty list as argument which is where recursion terminates.
+
+
+ - Produce a list with n identical elements:
+ replicate :: Int -> a -> [a]
+
+After the practice with concat this seemed easy.
+
+replicate'' :: Int -> a -> [a]
+replicate'' 0 _ = []
+replicate'' 1 a = [a]
+replicate'' n a = a : replicate'' (n - 1) a
+
+
+ - Select the nth element of a list:
+ (!!) :: [a] -> Int -> a
+
+
+Had to test using:
+--zero based - eg 1st item is 0
+getelem :: [a] -> Int -> a
+getelem (x:xs) 0 = x 
+getelem (x:xs) n = getelem xs (n - 1)
+
+Which would translate to:
+
+--zero based - eg 1st item is 0
+(!!) :: [a] -> Int -> a
+(x:xs) !! 0 = x 
+(x:xs) !! n = xs !! (n - 1)
+
+
+
+ - Decide if a value is an element of a list:
+ elem :: Eq a => a -> [a] -> Bool
+
+
+elem :: Eq a => a -> [a] -> Bool
+elem _ [] = False 
+elem x (y:ys) = if x == y then 
+                      True
+                  else
+                      elem x ys
+ 
+
+4. Define a recursive function merge :: Ord a => [a] -> [a] -> [a] that merges two sorted lists to give a 
+single sorted list. For example:
+
+> merge [2,5,6] [1,3,4]
+[1,2,3,4,5,6]
+
+Note: your definition should not use other functions on sorted lists such as insert or isort, but should be 
+defined using explicit recursion.
+
+Here is my first attempt
+merge :: Ord a => [a] -> [a] -> [a]
+merge [] xs = xs
+merge xs [] = xs
+merge (x:xs) (y:ys) | x <= y   = x : y : merge xs ys
+                    |otherwise = y : x : merge xs ys
+ 
+
+which worked for some tests but not merge [3000,3001] [1,3,5,7,9] which produces: [1,3000,3,3001,5,7,9]
+
+
+OK, trouble is I was testing with cases like [1,3,5] [2,4,6].  But you can get cases like: [1,2,3] [8000,8001,8002].
+So you need to take smallest element as first elemwent and then merge the rest.  There is a special case 
+where x == y then you can use my first approach - here you have first two elements - it doesn't matter how 
+you order - but might as well order as element from 1st array followed by 2nd array. 
+
+merge :: Ord a => [a] -> [a] -> [a]
+merge [] xs = xs
+merge xs [] = xs
+merge (x:xs) (y:ys) | x == y   = x : y : merge xs ys 
+                    | x < y    = x : merge xs (y:ys)
+                    |otherwise = y : merge ys (x:xs)
+
+
+5. Using merge, define a recursive function msort :: Ord a => [a] -> [a] that implements merge sort, in 
+which the empty list and signelton lists are already sorted, and any other list is sorted by merging together 
+the two lists that result from sorting the two halves of the list separately.
+
+I thought I better take the hint!  halve was defined earlier:
+halve :: [a] -> ([a],[a])
+halve xs = (take ((length xs) `div` 2) xs, drop ((length xs) `div` 2) xs)
+
+So firstly lets define the base cases:
+msort :: Ord a => [a] -> [a]
+msort [] = []
+msort [x] = [x]
+
+Now we just need to work out how to sort the non-empty or non-singleton lists.
+
+That fried my brain a little.  And I hadn't studied merge sort before.  This does seem to work.
+
+msort :: Ord a => [a] -> [a]
+msort [] = []
+msort [x] = [x]
+msort xs = merge (msort (fst (halve xs))) (msort (snd (halve xs)))
+
+
+6. Using the five-step process, define the library functions that calculate the sum of a list of numbers, 
+take a given number of elements from the start of a list, and select the last element of a non-empty list.
+
+So we need these:
+
+sum :: (Num a) => [a] -> a
+take :: Int -> [a] -> [a]
+last :: [a] -> a
+
+doing sum after msort seems like going back to primary school.
+
+sum' :: (Num a) => [a] -> a
+sum' [] = 0
+sum' (x:xs) = x + sum' xs
+
+
+take' :: Int -> [a] -> [a]
+take' 0 _ = []
+take' n [] = []
+take' n (x:xs) = x : take' (n - 1) xs
+
+
+This is a bit more controversial - take n [] = [] means that take 5 [1,2,3] returns [1,2,3] and emits no error.  
+Possibly that is a mistake.  Apart from that case works ok.
+
+Actually, just checked with standard take and that behaves the same - so OK :)
+
+
+last' :: [a] -> a
+last' [x] = x
+last' (x:xs) = last' xs  
+
+
+For these exercises, I found concat the hardest.  But that was good because I learnt more about how to work 
+with lists and list syntax.  msort was next hardest - was quite pleased to have found a solution to that one 
+without giving up.
+
