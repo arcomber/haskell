@@ -14,3 +14,19 @@ map (+7) (filter odd [1..10])
 so given a function f, a predicate p and a list lst, it can be expressed as:
 
 map f (filter p lst)
+
+
+2. Without looking at the definitions from the standard prelude, define the higher-order functions all, any, 
+takeWhile and dropWhile.
+
+all' :: (a -> Bool) -> [a] -> Bool
+all' f [] = True
+all' f (x:xs) = f x && all' f xs
+
+(I wondered if an empty list returning True would be a problem but the Prelude all behaves this way so must be ok)
+
+any' :: (a -> Bool) -> [a] -> Bool
+any' f [] = False
+any' f (x:xs) = f x || any' f xs
+
+
