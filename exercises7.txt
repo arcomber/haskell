@@ -1,7 +1,7 @@
 Programming in Haskell by Graham Hutton Exercises - Chapter 7
 
-1. Show how the list comprehension [f x | x <- xs, p x] can be re-expressed using the higher-order functions map 
-and filter.
+1. Show how the list comprehension [f x | x <- xs, p x] can be re-expressed using the higher-order functions 
+map and filter.
 
 Well given a list comprehension like:
 
@@ -16,8 +16,8 @@ so given a function f, a predicate p and a list lst, it can be expressed as:
 map f (filter p lst)
 
 
-2. Without looking at the definitions from the standard prelude, define the higher-order functions all, any, 
-takeWhile and dropWhile.
+2. Without looking at the definitions from the standard prelude, define the higher-order functions all, 
+any, takeWhile and dropWhile.
 
 all' :: (a -> Bool) -> [a] -> Bool
 all' f [] = True
@@ -28,5 +28,209 @@ all' f (x:xs) = f x && all' f xs
 any' :: (a -> Bool) -> [a] -> Bool
 any' f [] = False
 any' f (x:xs) = f x || any' f xs
+
+-- select elements in a list while they satisfy a predicate
+-- takeWhile isLower "abc def" > "abc"
+takeWhile' :: (a -> Bool) -> [a] -> [a]
+takeWhile' _ [] = []
+takeWhile' f (x:xs) | f x = x : takeWhile' f xs
+                   |otherwise = [] 
+
+
+-- remove elements from a list while they satisfy a predicate
+-- dropWhile isLower "abc def" > " def"
+dropWhile' :: (a -> Bool) -> [a] -> [a]
+dropWhile' _ [] = []
+dropWhile' f (x:xs) | f x  = dropWhile' f xs
+                    | otherwise = x : xs
+
+*** I checked my results and book answer used composition operator for all and any which I didn't. 
+I didn't understand . operator fully on first reading so re-visited. 
+
+eg: 
+all'' :: (a -> Bool) -> [a] -> Bool
+all'' p  = and . map p
+
+*** Another thing learnt was that takeWhile and dropWhile answers were same as mine but I used generic f 
+for function parameter.  It seems that it is more idiomatic to use p (for predicate) so in cases of predicates 
+will adopt that.
+
+
+  
+Redefine the functions map f and filter p using foldr.
+
+I struggled with this one for map.  Couldn't work it out so I had to lookup answer:
+
+map'' :: (a -> b) -> [a] -> [b]
+map'' f = foldr (\x xs -> f x : xs) []
+
+OK armed with that, lets try filter.
+
+filter' :: (a -> Bool) -> [a] -> [a]
+filter' p = foldr (\x xs -> if p x then (x : xs) else (xs)) [] 
+
+It seemed to work.
+
+Wow it is even the same as in book :)  [Although I had un-needed extra parenthesis around xs after else].
+
+4. Using foldl, define a function dec2int :: [Int] -> Int that converts a decimal number into an integer. for example:
+
+> dec2int [2,3,4,5]
+2345
+
+OK lets do it in stages like in book
+
+-- dec2int [1,2,3,4] > 1234
+dec2int :: [Int] -> Int
+dec2int xs = sum [w * b | (w, b) <- zip weights (reverse xs)]
+                where weights = iterate (*10) 1  
+
+Fine, that works.  Based on bin2int example in book.
+
+dec2int = foldl (\x y -> 10 * x + y) 0 
+
+This was more hassle than it looks due to the fact that processing of lists starts from the front of the list 
+but the 'weighting' of the numbers goes from right to left.
+
+Remember foldl would process like this in this case:
+
+(((v op x0) op x1) op x2)
+
+eg dec2int [1,2,3]
+
+(((0 op 1) op 2) op 3)
+
+(((10 * 0 + 1) op 2) op 3)
+
+((1 op 2) op 3)
+
+((10 * 1 + 2) op 3)
+
+(12 op 3)
+
+(10 * 12 + 3)
+
+123
+
+5. Explain why the following definition is invalid:
+
+sumsqreven = compose [sum, map (^2), filter even]
+
+This works ok:
+sumsqreven = compose [map (^2), filter even]
+
+But sum has signature
+sum :: (Num a) => [a] -> a
+
+ie the result is a singleton.
+
+Whereas map (^2) and filter even return a list.
+
+6. Without looking at the standard prelude, define the higher order library function curry that converts 
+a function on pairs into a curried function, and, conversely, the function uncurry that converts a curried 
+function with two arguments into a function on pairs.
+
+Hint: first write down the types of the two functions.
+
+
+curry :: ((a,b) -> c) -> a -> b -> c
+
+No idea!  I cheated and looked at answer.
+
+curry' :: ((a,b) -> c) -> a -> b -> c
+curry' f = \x y -> f (x, y)
+
+it works:
+curry' fst 2 3
+> 2
+
+OK so maybe I can do the other way round now I have seen this:
+
+
+uncurry' :: (a -> b -> c) -> ((a, b) -> c)
+uncurry' f =  \(x, y) -> f x y 
+
+
+-- eg uncurry mod (5, 4) > 1
+
+7. A higher-order function unfold that encapsulates a simple pattern of recursion for producing a list can be 
+defined as follows:
+
+unfold p h t x | p x = []
+               |otherwise h x : unfold p h t (t x)
+
+That is, the function unfold p h t produces the empty list if the predicate p is true of the argument, 
+and otherwise produces a non-empty list by applying the function h to give the head, and the function t 
+to generate another argument that is recursively processed in the same way to produce the tail of the list. 
+For example, the function int2bin can be rewritten more compactly using unfold as follows:
+
+int2bin = unfold (==0) (`mod` 2) (`div` 2)
+
+Redefine the function chop8, map f and iterate f using unfold.
+
+chop8' :: [Int] -> [[Int]]
+chop8' = unfold' (null) (take 8) (drop 8)
+
+I almost got map - but tried (f head) - I am still a bit unsure on composition operator - I need practice with that.
+
+map''' :: (a -> b) -> [a] -> [b]
+map''' f  = unfold' (null) (f . head) (tail)
+
+I attempted iterate with:
+iterate' :: (a -> a) -> a -> [a]
+iterate' f = unfold' (null) (f . head) tail
+
+
+Apparently answer was:
+iterate f = unfold (const False) id f
+
+I wouldn't have worked that out.  
+
+8. Modify the string transmitter program to detect simple transmission errors using parity bits. 
+That is, each eight-bit binary number produced during encoding is extended with a parity bit, set to 
+one if the number contains an odd number of ones, and to zero otherwise. In turn, each resulting nine-bit 
+binary number consumed during decoding is checked to ensure that its parity bit is correct, with the parity 
+bit being discarded if this is the case, and a parity error reported otherwise.
+
+Hint: the library function error :: String -> a terminates evaluation and display the given string as an error message.
+
+First go at encode:
+
+addparity :: [Bit] -> [Bit]
+addparity xs  |even (sum xs) = xs ++ [0]
+              |otherwise = xs ++ [1]
+
+bencode' :: String -> [Bit]
+bencode' = concat . map (addparity . make8 . int2bin . ord) 
+
+Then onto decoding:
+
+paritychecker :: [Bit] -> Bool
+paritychecker xs | length xs == 9 && ((sum (init xs)) `mod` 2) == (last xs) = True
+                 | otherwise = error "decode error!!!"
+
+discardparitybit :: [[Bit]] -> [[Bit]]
+discardparitybit xs = map (take 8) xs
+             
+bdecode' :: [Bit] -> String
+bdecode' xs = map (chr . bin2int) . discardparitybit $ filter paritychecker ( chop9 xs) 
+
+
+9. Test your new string transmitter program from the previous exercise using a faulty communication channel 
+that forgets the first bit, which can be modelled using the tail function on lists of lists.
+
+This was a very intersating and challenging exercise.
+
+Here is my working (but sub-optimal) code.
+
+discard first and every 9th bit
+discarder :: Int -> [a] -> [a]
+discarder n xs = map snd (filter (\(index, _) -> index `mod` n /= 0) $ zip [0..] xs)
+
+channel' :: [Bit] -> [Bit]
+channel' = discarder 9
+
+transmit' :: String -> String
+transmit' = bdecode' . channel' . bencode'
 
 
