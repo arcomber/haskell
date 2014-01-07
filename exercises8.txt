@@ -1,0 +1,24 @@
+Programming in Haskell by Graham Hutton Exercises - Chapter 8
+
+Note that you will experience problems running the code in this chapter as is.  Details of why relate to Monads which 
+I have not studied yet.  Download file Parsing.lhs from http://www.cs.nott.ac.uk/~gmh/book.html.
+
+Then you can copy the functions in parser.lhs into your programming file and you can then run eg: eval "2+3*4" in WinGHCi.
+
+
+1. The library file also defines a parser:
+int :: Parser Int
+
+for an integer.  
+
+Without looking at this definition, define int. Hint: an integer is either a minus symbol followed by a natural number, 
+or a natural number.
+
+
+int :: Parser Int
+int = do 
+
+...
+
+In view of complications of Monads I have decided to postpone completion of this chapter.  moving to chapter 9 and 
+will return to this chapter at some later stage.
