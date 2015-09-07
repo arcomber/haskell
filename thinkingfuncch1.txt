@@ -59,8 +59,25 @@ Double checking by using sin:
 Prelude> sin (30 * pi / 180) ^2
 0.24999999999999994
 
-Which is the correctna answer. floating point issues to be ignored for now.
+Which is the correct answer. floating point issues to be ignored for now.
 
+How to express sin 2theta / 2pi?
+
+Not sure if he is asking for sin(2theta)/2pi or sin(2theta/2pi) - assuming the latter.
+
+Then would be:
+
+sin (2 theta / 2 pi)
+
+Like this:
+
+> let x = 30.0 * pi / 180.0
+0.5235987755982988
+> sin(2*x/2*pi)
+0.9972530562885595
+
+
+Exercise C.
 
 
 
