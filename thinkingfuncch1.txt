@@ -1,0 +1,66 @@
+I got a little stuck with the previous Haskell book on the chapter on monads.  The book was a little out-of-date and the code didn't work on  current Haskell so came to a bit of a stop and moved onto other things.
+
+Then I saw Thinking Functionally with Haskell newly published and thought I would give it a go again.
+
+So these files are my attempts at doing the book exercises.
+
+Chapter 1 Exercises
+
+Exercise A.  Using function:
+double :: Integer -> Integer
+double x = 2*x
+
+What are the values of the following expressions.
+
+map double [1,4,4,3]
+map (double . double) [1,4,4,3]
+map double []
+
+
+starting with:
+map double [1,4,4,3]
+
+map had been introduced in the chapter with the toLower example applying the toLower function on all characters in a string.  So in this example it would seem the idea is to apply the double function to each element in the list.  A list has not yet been formally introduced but appears to be some sort of sequence of whatever type.  
+
+it would seem a good guess to say that the expression would double each individual element in the list.
+
+Giving it a try bears this out.
+
+*Main> map double [1,4,4,3]
+[2,8,8,6]
+
+So what about 
+map (double . double) [1,4,4,3]
+
+Function composition using the dot operator was mentioned and the fact that order is right to left.  So in this case the right hand function would be applied then the left hand function.  The distinction is unimportant here and the result is each element in the list is doubled twice.
+
+*Main> map (double . double) [1,4,4,3]
+[4,16,16,12]
+
+What about:
+map double []
+
+well hopefully it is logical and double no elements in a list results no elements in a list.  It does.
+
+*Main> map double []
+[]
+
+
+Exercise B.
+Which of the following expressions is a rendering of sin^2 theta in Haskell?
+
+Well in maths that would mean (sin theta)^2.  ie (sin 30 degrees)^2 = 1/2 squared = 1/4.
+
+So we would expect the operation to perform the sin function first then square the answer.
+
+So given sin theta^2, and the fact that function application gives precedence over every other operator, then just writing sin theta^2 should give the correct answer.
+
+Double checking by using sin:
+Prelude> sin (30 * pi / 180) ^2
+0.24999999999999994
+
+Which is the correctna answer. floating point issues to be ignored for now.
+
+
+
+
